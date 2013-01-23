@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Purple Users{% endblock %}
+
+{% block head_content %}
+	<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>
+	<style type="text/css">
+		a.user_item_selected {
+			font-weight: bold;
+		}
+	</style>
+{% endblock %}
+
+{% block header_script %}
+	$(document).ready(function()
+	{
+		{% include "hash_script.js" %}
+	});
+{% endblock %}
+
+{% block sidebar %}
+	<ul class="nav nav-list">
+		<li class="nav-header">Choose View</li>
+		<li class="active"><a href="/users">By User</a></li>
+		<li><a href="/groups">By Group</a></li>
+		<li><a href="/probes">By Probe</a></li>
+		<li class="nav-header">Tools</li>
+		<li><a href="#hashGenerator" data-toggle="modal">Generate MD5 Hash</a></li>
+		<li class="nav-header">All Users</li>
+		{% for database in databases %}
+			<li><a href="/user/{{ database }}" title="{{ database }}" class="user_item">{{ database|truncate(18) }}</a></li>
+		{% endfor %}
+	</ul>
+{% endblock %}
+
+{% block content %}
+	<div class="hero-unit">
+		<h1>Hello, world!</h1>
+		<p>This is a template for a simple marketing or informational website. It includes a large callout called the hero unit and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+	</div>
+	<div class="row-fluid">
+		<div class="span4">
+			<h2>Heading</h2>
+			<p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+			<p><a class="btn" href="#">View details &raquo;</a></p>
+		</div><!--/span-->
+		<div class="span4">
+			<h2>Heading</h2>
+			<p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+			<p><a class="btn" href="#">View details &raquo;</a></p>
+		</div><!--/span-->
+		<div class="span4">
+			<h2>Heading</h2>
+			<p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+			<p><a class="btn" href="#">View details &raquo;</a></p>
+		</div><!--/span-->
+	</div><!--/row-->
+	<div class="row-fluid">
+		<div class="span4">
+			<h2>Heading</h2>
+			<p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+			<p><a class="btn" href="#">View details &raquo;</a></p>
+		</div><!--/span-->
+		<div class="span4">
+			<h2>Heading</h2>
+			<p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+			<p><a class="btn" href="#">View details &raquo;</a></p>
+		</div><!--/span-->
+		<div class="span4">
+			<h2>Heading</h2>
+			<p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+			<p><a class="btn" href="#">View details &raquo;</a></p>
+		</div><!--/span-->
+	</div><!--/row-->
+
+	<div id="hashGenerator" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3 id="myModalLabel">MD5 Hash Generator</h3>
+		</div>
+		<div class="modal-body">
+		    <input type="text" placeholder="Orginal Text" style="width: 95%;" id="hashOriginal"/><br />
+		    <input type="text" placeholder="MD5 Hash" style="width: 95%;" id="hashString" />
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+			<button class="btn btn-primary" id="generateHash">Generate Hash</button>
+		</div>
+	</div>
+	
+	{% include 'hash_form.html' %}
+{% endblock %}

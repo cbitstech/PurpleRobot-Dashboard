@@ -1,0 +1,94 @@
+<h4>{{ view.name }} (<span id="{{ canvas }}_count">Calculating...</span>)</h4>
+<div id="{{ canvas }}_canvas" style="height: 200px;"></div>
+
+<script>
+    $(document).ready(function()
+    {
+        Highcharts.setOptions({
+        	global: {
+        		useUTC: false
+        	}   
+        });
+        
+        var data = {};
+        data.database = '{{ view.value.database }}';
+        data.table = '{{ name }}';
+        data.timestamp = 'timestamp';
+        data.columns = '{{ columns }}';
+		
+		var columns = data.columns.split(',');
+		
+//		alert('{{ canvas }} COLUMNS ' + columns.length);
+		
+        $.ajax('/fetch',
+        {
+			// SPLINE_CHART
+            data: data,
+            dataType: 'json',
+            type: 'GET',
+            success: function(data, textStatus, jqXHR)
+            {
+				var series = [];
+				
+				if (columns.length == 1)
+	                series.push({ name: '{{ view.name }}', data:[] });
+				else if (columns.length > 1)
+				{
+					var i = 0;
+					for (i = 0; i < columns.length; i++)
+						series.push({ name: columns[i], data:[] });
+				}
+                
+				$('span#{{ canvas }}_count').text(data.length + ' items');
+				
+                var i = 0;
+                for (i = 0; i < data.length; i++)
+                {
+                    var reading = data[i];
+					
+					for (var j = 0; j < columns.length; j++)
+					{
+	                    var seriesData = [];
+						
+	                    seriesData.push(reading['timestamp'] * 1000);
+	                    seriesData.push(reading[columns[j]]);
+						
+	                    series[j].data.push(seriesData);
+					}
+                }
+                
+                var chart = new Highcharts.Chart(
+                {
+                    chart:
+                    {
+                        renderTo: '{{ canvas }}_canvas',
+                        type: 'spline',
+						zoomType: 'x'
+                    },
+                    title: { text: null },
+                    legend: { enabled: false  },
+                    credits: { enabled: false },
+                    plotOptions:
+                    {
+                        spline:
+                        {
+                            marker:
+                            {
+                                enabled: false
+                            }
+                        }
+                    },
+                    xAxis: { type: 'datetime' },
+                    yAxis:
+                    {
+                        title: { text: null },
+                        min: 0
+                    },
+                    series: series
+                });
+            }
+        });
+    });
+</script>
+
+<!-- [{"timestamp":1358287695,"THROUGHPUT":1144.5,"PENDING_COUNT":8,"PENDING_SIZE":3456},{"timestamp":1358287755,"THROUGHPUT":1144.5,"PENDING_COUNT":9,"PENDING_SIZE":4048}] -->
