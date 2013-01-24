@@ -1,12 +1,12 @@
 var pg = require('pg');
 var async = require('async');
-var views = require('./visualizations');
+var charts = require('./charts');
 
 var username = "postgres";
 var password = "mohrLab1";
 var host = "165.124.171.126";
 
-exports.fetchDatabases = function(callback) // should be fetchDatabases...
+exports.fetchDatabases = function(callback)
 {
     var connectionString = "pg://" + username + ":" + password + "@" + host + "/postgres";
 
@@ -132,7 +132,7 @@ exports.fetchDatabase = function(database, callback)
                 for (var i = 0; i < results.length; i++)
                 {
                     results[i].database = database;
-                    tables.push(views.viewForObject(results[i].name, results[i]));
+                    tables.push(charts.chartForObject(results[i].name, results[i]));
                 }
                 
                 dbObj["tables"] = tables;
