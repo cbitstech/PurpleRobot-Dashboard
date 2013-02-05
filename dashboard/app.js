@@ -8,6 +8,7 @@ var express = require('express')
     , user = require('./routes/user')
     , users = require('./routes/users')
     , fetch = require('./routes/fetch')
+    , md5 = require('./routes/md5')
     , http = require('http')
     , cluster = require('cluster')
     , swig = require('swig')
@@ -37,6 +38,8 @@ app.configure('development', function()
 
 app.get('/', routes.index);
 app.get('/users', users.index);
+app.get('/md5', md5.index);
+app.post('/md5/lookup', md5.lookup);
 app.get('/user/:id', user.view);
 app.get('/fetch', fetch.fetch_data);
 

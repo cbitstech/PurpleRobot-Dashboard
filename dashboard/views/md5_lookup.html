@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Hash Lookup Tool{% endblock %}
+
+{% block head_content %}
+	<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>
+	<style type="text/css">
+		a.user_item_selected {
+			font-weight: bold;
+		}
+	</style>
+{% endblock %}
+
+{% block header_script %}
+	$(document).ready(function()
+	{
+		{% include "hash_script.js" %}
+	});
+{% endblock %}
+
+{% block sidebar %}
+	<ul class="nav nav-list">
+		<li class="nav-header">Choose View</li>
+		<li><a href="/users">By User</a></li>
+		<li><a href="/groups">By Group</a></li>
+		<li><a href="/probes">By Probe</a></li>
+		<li class="nav-header">Tools</li>
+		<li class="active"><a href="/md5">Batch Lookup Tool</a></li>
+	</ul>
+{% endblock %}
+
+{% block content %}
+	<div>
+		<table>
+			<tr>
+				<th style="padding: 0.25em; text-align: left;">Hash</th>
+				<th style="padding: 0.25em; text-align: left;">Identifier</th>
+			</tr>
+			{% for result in results %}
+				{% if result.found %}
+					<tr><td style="padding: 0.25em;"><a href="/user/{{ result.hash }}" title="{{ result.hash }}"><strong>{{ result.hash }}</strong></a></td><td>{{ result.identifier }}</td></tr>
+				{% else %}
+					<tr><td style="padding: 0.25em;">{{ result.hash }}</td><td>{{ result.identifier }}</td></tr>
+				{% endif %}
+			{% endfor %}
+		</table>
+	</div>
+{% endblock %}
