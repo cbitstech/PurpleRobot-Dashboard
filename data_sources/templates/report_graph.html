@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ report.name }}{% endblock %}
+{% block scripts %}
+	<script src="http://code.jquery.com/jquery.min.js"></script>
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	<script src="https://datejs.googlecode.com/files/date.js"></script>
+	<script>
+		$(document).ready(function()
+		{
+		    Highcharts.setOptions({
+			global: {
+			    useUTC: true
+			}   
+		    });
+		    
+		    var series = [];
+                    
+		    var data = {{ report.report_json|safe }};
+    		
+                    series.push({ name: '{{ report.name }}', data:[] });
+    		
+        	    var i = 0;
+                    for (i = 0; i < data["bins"].length; i++)
+                    {
+                        var bin = data["bins"][i];
+
+			var start = Date.parseExact(bin["start"], "yyyy-MM-dd HH:mm:ss");
+		console.log(start);
+						
+                        // series[0].data.push([start, bin["count"]]);
+                        series[0].data.push([bin['start'], bin["count"]]);
+                    }
+		
+        	    var chart = new Highcharts.Chart(
+                    {
+                        chart:
+                        {
+                             renderTo: 'canvas',
+                         //   zoomType: 'x',
+                            type: 'spline',
+                        },
+                        title: { text: null },
+                        legend: { enabled: false  },
+                        credits: { enabled: false },
+                        plotOptions:
+                        {
+                            spline:
+                            {
+                                marker:
+                                {
+                                    enabled: false
+                                }
+                            }
+                        },
+                        xAxis: { 
+			    // type: 'datetime'
+                        },
+                        yAxis:
+                        {
+//                            min: 0,
+                            title: { text: null }
+                        },
+                        series: series
+                    });
+                });
+        </script>
+{% endblock %}
+{% block content %}
+	    <h1>{{ report.name }}</h1>
+	    <div id="canvas"></div>
+{% endblock %}

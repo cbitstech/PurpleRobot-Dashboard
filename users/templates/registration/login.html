@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Login</title>
+        <link type="text/css" rel="stylesheet" href="/static/assets/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="/static/assets/css/login.css">
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="span4 offset4">
+                    <div class="signin">
+                        <div class="tab-content">
+                            <div id="login" class="tab-pane active">
+                                <form action="." accept-charset="utf-8" method="post">
+									{% csrf_token %} 
+									<input type="hidden" name="next" value="{{ next }}" />
+                                    <p class="muted tac">
+                                        Enter your username and password
+                                    </p>
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <div class="input-prepend">
+                                                <span class="add-on"><i class="icon-user"></i></span>
+                                                <input id="id_username" maxlength="254" name="username" type="text" placeholder="Username" />
+                                            </div>
+                                        </div>
+                                        <div class="controls">
+                                            <div class="input-prepend">
+                                                <span class="add-on"><i class="icon-lock"></i></span>
+                                                <input id="id_password" name="password" type="password" placeholder="Password" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-inverse btn-block" type="submit">Login</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <ul class="inline">
+                            <li><a class="muted" href="{% url 'auth_password_reset' %}">Forgot Password</a></li>
+                            <li><a class="muted" href="{% url 'registration_register' %}">Register</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/static/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+        <script type="text/javascript" src="/static/assets/js/vendor/bootstrap.min.js"></script>
+    </body>
+</html>

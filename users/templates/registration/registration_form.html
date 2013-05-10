@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Register</title>
+        <link type="text/css" rel="stylesheet" href="/static/assets/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="/static/assets/css/login.css">
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="span4 offset4">
+                    <div class="signin">
+                        <div class="tab-content">
+                            <div id="login" class="tab-pane active">
+                                <form action="index.html" accept-charset="utf-8" method="post">
+									{% csrf_token %}
+                                    <p class="muted tac">
+                                        Create an account
+                                    </p>
+                                    <div class="control-group">
+                                        <div class="controls">
+                                            <div class="input-prepend">
+                                                <span class="add-on"><i class="icon-user"></i></span>
+                                                <input class="required" id="id_username" maxlength="30" name="username" type="text" placeholder="Username" />
+                                            </div>
+                                        </div>
+                                        <div class="controls">
+                                            <div class="input-prepend">
+                                                <span class="add-on"><i class="icon-user"></i></span>
+                                                <input class="required" id="id_email" maxlength="75" name="email" type="text" placeholder="E-Mail Address" />
+                                            </div>
+                                        </div>
+                                        <div class="controls">
+                                            <div class="input-prepend">
+                                                <span class="add-on"><i class="icon-lock"></i></span>
+												<input class="required" id="id_password1" name="password1" type="password" placeholder="Password" />
+                                            </div>
+                                        </div>
+                                        <div class="controls">
+                                            <div class="input-prepend">
+                                                <span class="add-on"><i class="icon-lock"></i></span>
+												<input class="required" id="id_password2" name="password2" type="password" placeholder="Password (Confirm)" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-inverse btn-block" type="submit">Register</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <ul class="inline">
+                            <li><a class="muted" href="{% url 'auth_login' %}">Login</a></li>
+                            <li><a class="muted" href="#forgot" data-toggle="tab">Forgot Password</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/static/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+        <script type="text/javascript" src="/static/assets/js/vendor/bootstrap.min.js"></script>
+    </body>
+</html>
