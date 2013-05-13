@@ -20,5 +20,6 @@ urlpatterns = patterns('',
     url(r'^events/', include('events.urls')),
     url(r'^participants/', include('participants.urls')),
     url(r'^mobilyze/', include('mobilyze.urls')),
+    url(r'^legacy/', include('legacy.urls')),
     url(r'^$', include('website.urls')),
 )

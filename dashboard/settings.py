@@ -135,6 +135,7 @@ INSTALLED_APPS = (
     'pr_integration',
     'events',
     'mobilyze',
+    'legacy',
     'website',
 )
 
