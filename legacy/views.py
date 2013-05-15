@@ -37,5 +37,25 @@ def database_contents(request, database):
     c['all_databases'] = all_databases()
     c['request'] = request
     c['tables'] = fetch_tables(database)
+    c['my_database'] = database
 
     return render_to_response('legacy_dashboard_user.html', c)
+
+@login_required
+def legacy_fetch_data(request, database, table, column, timestamp):
+    data = fetch_data(database, table, column, limit=500)
+    
+    for datum in data:
+        if isinstance(datum[0], datetime.datetime):
+            timestamp = pytz.utc.localize(datum[0])
+            timestamp = timestamp.astimezone(timezone('US/Central'))
+
+            datum[0] = time.mktime(timestamp.timetuple())
+
+        if isinstance(datum[1], datetime.datetime):
+            timestamp = pytz.utc.localize(datum[1])
+            timestamp = timestamp.astimezone(timezone('US/Central'))
+
+            datum[1] = time.mktime(timestamp.timetuple())
+    
+    return HttpResponse(json.dumps(data, indent=2), content_type="application/json")

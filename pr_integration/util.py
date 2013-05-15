@@ -1,3 +1,5 @@
+import collections
+import datetime
 import psycopg2
 
 IGNORE = ['SourceValue'];
@@ -72,6 +74,7 @@ def fetch_tables(database):
                 table = {}
                 table['name'] = result[0]
                 table['columns'] = fetch_columns(database, table['name'])
+                table['database'] = database
                 tables.append(table)
     except:
         pass
@@ -79,10 +82,12 @@ def fetch_tables(database):
     conn.close()
     cursor.close()
 
+    tables = sorted(tables, key=lambda x: x['name'].lower())
+    
     return tables
 
 
-def fetch_data(database, table_name, column_name, start, end, distinct=False):
+def fetch_data(database, table_name, column_name, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0):
     db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
@@ -90,25 +95,30 @@ def fetch_data(database, table_name, column_name, start, end, distinct=False):
     values = []
     
     try:
-        query = 'SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s);'
+        query = 'SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
         
         if distinct:
-            query = 'SELECT DISTINCT "' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s);'
+            query = 'SELECT DISTINCT "' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
+            
+        if limit > 0:
+            query += 'ORDER BY "eventDateTime" DESC LIMIT ' + str(limit)
+            
+        query += ';'
 
         cursor.execute(query, (start, end,))
         
         for result in cursor:
             if len(result) >= 2:
-                values.append((result[0], result[1],))
+                values.append([result[0], result[1]])
             else:
-                values.append((0, result[0],))
+                values.append([0, result[0]])
     except:
         pass
         
     conn.close()
     cursor.close()
-        
-    return values
+    
+    return list(reversed(values))
 
 def all_databases():
     db_string = 'host=\'165.124.171.126\' dbname=\'postgres\' user=\'postgres\' password=\'mohrLab1\''

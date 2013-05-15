@@ -1,0 +1,18 @@
+<div class="box">
+	<header>
+	    <h5>{{ table.name }}</h5>
+		<div class="toolbar">
+			<a href="#div_{{ index }}" data-toggle="collapse" class="accordion-toggle minimize-box">
+				<i class="icon-chevron-down"></i>
+			</a>
+		</div>
+
+	</header>
+	<div id="div_{{ index }}" class="body collapse">
+		<ul>
+	    	{% for column in table.columns %}
+	    		<li>{{ column }} <a href="{% url 'legacy_fetch_data' table.database table.name column.0 'timestamp' %}">LINK</a></li>
+	    	{% endfor %}
+	    </ul>
+	</div>
+</div>

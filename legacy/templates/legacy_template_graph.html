@@ -1,0 +1,90 @@
+<div class="box">
+	<header>
+	    <h5>{% block graph_name %}Graph Name{% endblock %} ({{ table.name }})</h5>
+		<div class="toolbar">
+			<a href="#div_{{ index }}" data-toggle="collapse" class="accordion-toggle minimize-box">
+				<i class="icon-chevron-up"></i>
+			</a>
+		</div>
+	</header>
+	<div id="div_{{ index }}" class="body collapse in">
+		<div id="canvas_{{ index }}" style="height: 200px;"></div>
+	</div>
+</div>
+<script>
+    $(document).ready(function()
+    {
+        Highcharts.setOptions({
+        	global: {
+        		useUTC: false
+        	}   
+        });
+        
+		var columns = ['{% block graph_column_name %}level{% endblock %}'];
+		
+        $.ajax('/legacy/fetch/{{ table.database }}/{{ table.name }}/{% block graph_db_column_name %}level{% endblock %}/timestamp', 
+        {
+            dataType: 'json',
+            type: 'GET',
+            success: function(data, textStatus, jqXHR)
+            {
+				var series = [];
+				
+				if (columns.length == 1)
+	                series.push({ name: '{{ table.name }}', data:[] });
+				else if (columns.length > 1)
+				{
+					var i = 0;
+					for (i = 0; i < columns.length; i++)
+						series.push({ name: columns[i], data:[] });
+				}
+
+                var i = 0;
+                for (i = 0; i < data.length; i++)
+                {
+                    var reading = data[i];
+					
+					for (var j = 0; j < columns.length; j++)
+					{
+	                    var seriesData = [];
+						
+	                    seriesData.push(reading[0]);
+	                    seriesData.push(reading[1]);
+						
+	                    series[j].data.push(seriesData);
+					}
+                }
+                
+                var chart = new Highcharts.Chart(
+                {
+                    chart:
+                    {
+                        renderTo: 'canvas_{{ index }}',
+                        type: 'spline',
+						zoomType: 'x'
+                    },
+                    title: { text: null },
+                    legend: { enabled: false  },
+                    credits: { enabled: false },
+                    plotOptions:
+                    {
+                        spline:
+                        {
+                            marker:
+                            {
+                                enabled: false
+                            }
+                        }
+                    },
+                    xAxis: { type: 'datetime' },
+                    yAxis:
+                    {
+                        title: { text: null },
+                        min: 0
+                    },
+                    series: series
+                });
+            }
+        });
+    });
+</script>
