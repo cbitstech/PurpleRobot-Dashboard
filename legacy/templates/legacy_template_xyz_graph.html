@@ -20,9 +20,9 @@
         	}   
         });
         
-		var columns = ['{% block graph_column_name %}level{% endblock %}'];
+		var columns = ['X','Y','Z'];
 		
-        $.ajax('/legacy/fetch/{{ table.database }}/{{ table.name }}/{% block graph_db_column_name %}level{% endblock %}/timestamp', 
+        $.ajax('/legacy/fetch/{{ table.database }}/{{ table.name }}/X,Y,Z/EVENT_TIMESTAMP', 
         {
             dataType: 'json',
             type: 'GET',
@@ -47,11 +47,10 @@
 					for (var j = 0; j < columns.length; j++)
 					{
 	                    var seriesData = [];
-						
+
 	                    seriesData.push(reading[0] * 1000);
-	                    seriesData.push(reading[1]);
-						
-	                    series[j].data.push(seriesData);
+	                    seriesData.push(reading[1 + j]);
+    	                series[j].data.push(seriesData);
 					}
                 }
                 

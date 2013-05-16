@@ -87,18 +87,28 @@ def fetch_tables(database):
     return tables
 
 
-def fetch_data(database, table_name, column_name, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0):
+def fetch_data(database, table_name, column_names, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0):
     db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
 
     values = []
     
+    column_names = column_names.split(',')
+    
+    column_strings = ''
+    
+    for column_name in column_names:
+        if len(column_strings) > 0:
+            column_strings += ','
+            
+        column_strings += '"' + column_name + '"'
+    
     try:
-        query = 'SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
+        query = 'SELECT "eventDateTime",' + column_strings + ' FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
         
         if distinct:
-            query = 'SELECT DISTINCT "' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
+            query = 'SELECT DISTINCT ' + column_strings + ' FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
             
         if limit > 0:
             query += 'ORDER BY "eventDateTime" DESC LIMIT ' + str(limit)
@@ -108,8 +118,8 @@ def fetch_data(database, table_name, column_name, start=datetime.datetime.min, e
         cursor.execute(query, (start, end,))
         
         for result in cursor:
-            if len(result) >= 2:
-                values.append([result[0], result[1]])
+            if len(result) > 1:
+                values.append(list(result))
             else:
                 values.append([0, result[0]])
     except:

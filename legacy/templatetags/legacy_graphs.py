@@ -15,6 +15,10 @@ TEMPLATE_MAP = {
     'WeatherUndergroundFeature': 'legacy_weather_graph.html',
     'SunriseSunsetFeature': 'legacy_sunrise_graph.html',
     'WifiAccessPointsProbe': 'legacy_wifi_graph.html',
+    'AccelerometerProbe.ArrayValues': 'legacy_accel_graph.html',
+    'GyroscopeProbe.ArrayValues': 'legacy_gyro_graph.html',
+    'MagneticFieldProbe.ArrayValues': 'legacy_magnet_graph.html',
+    'PressureProbe.ArrayValues': 'legacy_pressure_graph.html',
     'RandomNoiseProbe': 'legacy_noise_graph.html'
 }
 
