@@ -10,6 +10,7 @@ from django.contrib.auth import *
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.context_processors import *
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import *
 from django.template import *
@@ -193,3 +194,34 @@ def mobilyze_status(request):
 
 def verify_id(request, id):
     return HttpResponse(json.dumps(fetch_status(id), indent=2), content_type="application/json")
+
+def retire_id(request, id=None):
+    for study in Study.objects.filter(slug='mobilyze-2013'):
+        for participant in study.participants.filter(participant_id=id):
+            participant.active = False
+            participant.save()
+
+    return redirect(reverse('mobilyze_status'))
+
+def activate_id(request, id=None):
+    for study in Study.objects.filter(slug='mobilyze-2013'):
+        for participant in study.participants.filter(participant_id=id):
+            participant.active = True
+            participant.save()
+
+    return redirect(reverse('mobilyze_status'))
+
+def add_id(request):
+    if request.method == 'POST':
+        if 'new_id' in request.POST:
+            new_id = request.POST['new_id'].strip()
+            
+            for study in Study.objects.filter(slug='mobilyze-2013'):
+                for participant in study.participants.filter(participant_id=new_id):
+                    return redirect(reverse('mobilyze_status'))
+            
+            participant = StudyParticipant(participant_id=new_id, study=study, active=True)
+            participant.save()
+
+    return redirect(reverse('mobilyze_status'))
+

@@ -69,7 +69,6 @@
 					<a href="" class="user-link">
 						<img src="/static/assets/img/user.gif" alt="" class="media-object img-polaroid user-img">
 					</a>
-
 					<div class="media-body hidden-tablet">
 						<h5 class="media-heading">{{ request.user.username }}</h5>
 						<ul class="unstyled user-info">
@@ -79,13 +78,14 @@
 						</ul>
 					</div>
 				</div>
-				<!-- /.user-media -->
-
-				<!-- BEGIN MAIN NAVIGATION -->
-				<ul id="menu" class="unstyled accordion collapse in">
-				</ul>
-				<!-- END MAIN NAVIGATION -->
-
+				<div class="media user-media">
+					<form action="{% url 'add_id' %}" method="post">
+						{% csrf_token %}
+             			<label for="new_id" class="control-label">Add New ID:</label>
+             			<input type="text" name="new_id" id="new_id" style="width: 75%;"/>
+						<input type="submit" value="Add ID" class="btn btn-primary">
+             		</form>
+				</div>
 			</div>
 			<!-- END LEFT -->
 
@@ -113,6 +113,7 @@
 												<th>Errors</th>
 												<th>Last Sensor Reading</th>
 												<th>Last PRO Response</th>
+												<th>Actions</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -133,6 +134,9 @@
 													</td>
 													<td>{{ row.last_sensor }}</td>
 													<td>{{ row.last_response }}</td>
+													<td>
+                                                    	<button class="btn remove"><a href="{% url 'retire_id' row.id %}"><i class="icon-remove"></i></a></button>
+                                                    </td>
 												</tr>					
 											{% endfor %}
 										</tbody>
@@ -161,6 +165,7 @@
 												<th>Started Sessions</th>
 												<th>Total Responses</th>
 												<th>Responses</th>
+												<th>Actions</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -172,6 +177,9 @@
 													<td width="70%">
 														<div id="chart_{{ forloop.counter0 }}" style="height: 240px;" />
 													</td>
+													<td>
+                                                    	<button class="btn remove"><a href="{% url 'activate_id' row.id %}"><i class="icon-plus"></i></a></button>
+                                                    </td>
 												</tr>					
 											{% endfor %}
 										</tbody>
