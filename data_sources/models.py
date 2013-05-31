@@ -35,19 +35,19 @@ class DataSource(models.Model):
         names.remove('SourceValue')
         
         if names.count('window1') > 0:
-	        names.remove('window1')
+            names.remove('window1')
 
         if names.count('window2') > 0:
-	        names.remove('window2')
+            names.remove('window2')
 
         if names.count('window3') > 0:
-	        names.remove('window3')
+            names.remove('window3')
 
         if names.count('WifiAccessPointsProbe.ACCESS_POINTS') > 0:
-	        names.remove('WifiAccessPointsProbe.ACCESS_POINTS')
+            names.remove('WifiAccessPointsProbe.ACCESS_POINTS')
 
         if names.count('user_data') > 0:
-	        names.remove('user_data')
+            names.remove('user_data')
 
         return names
         
@@ -92,7 +92,7 @@ class DataSource(models.Model):
 
 
     def fetch_nearest(self, point_time, table_name, original_names):
-    	column_names = []
+        column_names = []
     
         for i in range(0, len(original_names)):
             column_names.append('"' + original_names[i][0] + '"')
@@ -101,16 +101,18 @@ class DataSource(models.Model):
         
         conn = psycopg2.connect(self.location)
         cursor = conn.cursor()
-
-        cursor.execute('SELECT ' + names_string + ' FROM "' + table_name + '" WHERE ("eventDateTime" <= %s) ORDER BY "eventDateTime" DESC LIMIT 1;', (point_time,))
         
         fetched = []
+
+        if len(names_string) > 0:
+            cursor.execute('SELECT ' + names_string + ' FROM "' + table_name + '" WHERE ("eventDateTime" <= %s) ORDER BY "eventDateTime" DESC LIMIT 1;', (point_time,))
         
-        for result in cursor:
-            fetched.extend(result)
         
-        conn.close()
-        cursor.close()
+            for result in cursor:
+                fetched.extend(result)
+        
+            conn.close()
+            cursor.close()
         
         return fetched
     

@@ -71,7 +71,7 @@ def fetch_status(id):
         report['errors'].append('No such database ' + hash + ' for ID ' + id + '.')
     else:
         now = datetime.datetime.utcnow()
-        start = now - datetime.timedelta(0, 3600 * 4)
+        start = now - datetime.timedelta(0, 3600 * 6)
         
         sensor_table = 'RobotHealthProbe'
         sensor_field = 'ACTIVE_RUNTIME'
@@ -86,7 +86,7 @@ def fetch_status(id):
                 report['status'] = 'Error'
                 report['errors'].append('No recent data from sensor ' + sensor_table + '.' + sensor_field + '.')
                 
-        values = fetch_data(hash, sensor_table, sensor_field, datetime.datetime.min, now)
+        values = fetch_data(hash, sensor_table, sensor_field, datetime.datetime.min, now, limit=5)
         
         try:
             report['last_sensor'] = values[-1][0]
@@ -110,7 +110,7 @@ def fetch_status(id):
                 report['status'] = 'Error'
                 report['errors'].append('No recent responses from PRO.')
 
-        values = fetch_data(hash, response_table, response_field, datetime.datetime.min, now)
+        values = fetch_data(hash, response_table, response_field, datetime.datetime.min, now, limit=5)
 
         try:
             report['last_response'] = values[-1][0]

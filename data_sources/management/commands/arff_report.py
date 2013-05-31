@@ -5,7 +5,6 @@ import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.text import slugify
 
-
 from data_sources.models import DataSource, DataReport
 
 class Command(BaseCommand):
@@ -37,7 +36,7 @@ class Command(BaseCommand):
 #            print(json.dumps(table_columns, indent=2))
         
             points = ds.fetch_data(label_table_name, label_column_name, past, future)
-
+            
             label_value_name = label_table_name + '_' + label_column_name
             
             categorical_values = {}
@@ -49,11 +48,6 @@ class Command(BaseCommand):
                 
                 point_time = point[0]
                 label_value = point[1]
-
-# FOR WifiAccessPointsProbe: [(u'ACCESS_POINT_COUNT', u'integer'), (u'CURRENT_BSSID', u'text'), (u'CURRENT_LINK_SPEED', u'integer'), (u'CURRENT_RSSI', u'integer'), (u'CURRENT_SSID', u'text')]
-# GOT [37, u'd8:c7:c8:6d:ec:f8', 65, -57, u'"Northwestern"']
-# FOR RunningSoftwareProbe: [(u'RUNNING_TASK_COUNT', u'integer')]
-# GOT [9]
 
                 row_dict[label_value_name] = label_value
                 
@@ -105,7 +99,7 @@ class Command(BaseCommand):
                     for value in categorical_values[row_key]:
                         value_def.append(value)
                 
-                if value_def == 'REAL' or len(value_def) > 1:        
+                if value_def == 'REAL' or len(value_def) > 1:
                     attributes.append((row_key, value_def))
                 else:
                     ignore.append(row_key)
@@ -122,13 +116,17 @@ class Command(BaseCommand):
                         try:
                             data_row.append(row_dict[row_key])
                         except KeyError:
-                            data_row.append('?')
+                            data_row.append(None)
                 
                 data_rows.append(data_row)
             
             data['data'] = data_rows
             
+            print('dumping....')
+            
             print(arff.dumps(data))
+
+            print('done.')
 #            print(json.dumps(data, indent=1))
 #            
 #                
