@@ -160,7 +160,7 @@
 												<th>ID</th>
 												<th>Started Sessions</th>
 												<th>Total Responses</th>
-												<th>Responses</th>
+												<!-- <th>Responses</th> -->
 											</tr>
 										</thead>
 										<tbody>
@@ -169,9 +169,9 @@
 													<td width="10%">{{ row.id }}</td>
 													<td width="10%">{{ row.responses.DISTINCT_TIMES }}</td>
 													<td width="10%">{{ row.responses.TOTAL }}</td>
-													<td width="70%">
+													<!-- <td width="70%">
 														<div id="chart_{{ forloop.counter0 }}" style="height: 240px;" />
-													</td>
+													</td> -->
 												</tr>					
 											{% endfor %}
 										</tbody>
