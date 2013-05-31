@@ -32,7 +32,8 @@ class DataSource(models.Model):
         conn.close()
         cursor.close()
         
-        names.remove('SourceValue')
+        if names.count('SourceValue') > 0:
+            names.remove('SourceValue')
         
         if names.count('window1') > 0:
             names.remove('window1')
@@ -92,7 +93,10 @@ class DataSource(models.Model):
 
 
     def fetch_nearest(self, point_time, table_name, original_names):
-        column_names = []
+        if len(original_names) < 1:
+            return []
+        
+    	column_names = []
     
         for i in range(0, len(original_names)):
             column_names.append('"' + original_names[i][0] + '"')

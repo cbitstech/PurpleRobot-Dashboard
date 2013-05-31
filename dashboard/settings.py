@@ -4,7 +4,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Chris Karr', 'c-karr@northwestern.edu'),
 )
 
 MANAGERS = ADMINS
@@ -136,6 +136,7 @@ INSTALLED_APPS = (
     'events',
     'mobilyze',
     'legacy',
+    'brain',
     'website',
 )
 
