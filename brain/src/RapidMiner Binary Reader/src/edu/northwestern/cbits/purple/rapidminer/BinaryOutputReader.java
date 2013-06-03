@@ -100,10 +100,6 @@ public class BinaryOutputReader
 				
 				System.out.println(BinaryOutputReader.printNode(root, 0));
 			}
-			
-			BodySerializer javaIn = SerializationType.JAVA_BINARY.getBodySerializer();
-			
-			System.out.println(javaIn.deserialize(in).getClass());
 		} 
 		catch (FileNotFoundException e) 
 		{
