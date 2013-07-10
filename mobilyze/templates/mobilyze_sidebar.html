@@ -1,0 +1,36 @@
+<div class="media user-media hidden-phone">
+	<a href="" class="user-link">
+		<img src="/static/assets/img/user.gif" alt="" class="media-object img-polaroid user-img">
+	</a>
+	<div class="media-body hidden-tablet">
+		<h5 class="media-heading">{{ request.user.username }}</h5>
+		<ul class="unstyled user-info">
+			<li>Last Login: <br/>
+				<small>{{ request.user.last_login }}</small>
+			</li>
+		</ul>
+	</div>
+</div>
+{% if show_add %}
+	<div class="media user-media">
+		<form action="{% url 'add_id' %}" method="post">
+			{% csrf_token %}
+ 				<label for="new_id" class="control-label">Add New ID:</label>
+	 			<input type="text" name="new_id" id="new_id" style="width: 75%;"/>
+			<input type="submit" value="Add ID" class="btn btn-primary">
+		</form>
+	</div>
+{% endif %}
+<div class="media user-media" style="margin-left: -20px;">
+    <ul id="menu" class="unstyled accordion collapse in">
+        <li class="accordion-group active">
+            <ul class="collapse in" id="dashboard-nav">
+				<li><a href="{% url "mobilyze_status" %}"><i class="icon-angle-right"></i> Participation Status</a></li>
+				<li><a href="{% url "mobilyze_quality" %}"><i class="icon-angle-right"></i> Response Statistics</a></li>
+				<li><a href="{% url "mobilyze_numeric" %}"><i class="icon-angle-right"></i> Numeric Data (Excel Format)</a></li>
+				<li><a href="{% url "mobilyze_demographic" %}"><i class="icon-angle-right"></i> Demographic Data (Excel Format)</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+

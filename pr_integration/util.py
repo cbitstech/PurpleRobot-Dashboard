@@ -87,7 +87,7 @@ def fetch_tables(database):
     return tables
 
 
-def fetch_data(database, table_name, column_names, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0):
+def fetch_data(database, table_name, column_names, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0, filter=False):
     db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
@@ -109,25 +109,38 @@ def fetch_data(database, table_name, column_names, start=datetime.datetime.min, 
         
         if distinct:
             query = 'SELECT DISTINCT ' + column_strings + ' FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
-            
-        if limit > 0:
-            query += 'ORDER BY "eventDateTime" DESC LIMIT ' + str(limit)
+        
+        if filter:    
+            query += ' ORDER BY "eventDateTime" DESC'
+        elif limit > 0:
+            query += ' ORDER BY "eventDateTime" DESC LIMIT ' + str(limit)
             
         query += ';'
 
         cursor.execute(query, (start, end,))
         
+        last_saved = datetime.datetime.max
+        
         for result in cursor:
-            if len(result) > 1:
-                values.append(list(result))
+            if filter:
+                if len(result) > 1 and result[1] != None and str(result[1]).strip() != '':
+                    delta = last_saved - result[0]
+
+                    if delta.days > 0 or delta.seconds > 300:
+                        values.append(list(result))
+                        last_saved = result[0]
             else:
-                values.append([0, result[0]])
-    except:
-        pass
+                if len(result) > 1:
+                    if result[1] != None and str(result[1]).strip() != '':
+	                    values.append(list(result))
+                else:
+                    values.append([0, result[0]])
+    except psycopg2.ProgrammingError:
+         pass
         
     conn.close()
     cursor.close()
-    
+
     return list(reversed(values))
 
 def all_databases():

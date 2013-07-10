@@ -1,0 +1,304 @@
+{% load mobilyze_utilities %}
+<!DOCTYPE html>
+<!--[if lt IE 7]>		<html class="no-js lt-ie9 lt-ie8 lt-ie7">	<![endif]-->
+<!--[if IE 7]>			<html class="no-js lt-ie9 lt-ie8">			<![endif]-->
+<!--[if IE 8]>			<html class="no-js lt-ie9">					<![endif]-->
+<!--[if gt IE 8]><!-->	<html class="no-js">						<!--<![endif]-->
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>Data Quality | Mobilyze PRO</title>
+		<meta name="description" content="Metis: Bootstrap Responsive Admin Theme">
+		<meta name="viewport" content="width=device-width">
+		<link type="text/css" rel="stylesheet" href="/static/assets/css/bootstrap.min.css">
+		<link type="text/css" rel="stylesheet" href="/static/assets/css/bootstrap-responsive.min.css">
+		<link type="text/css" rel="stylesheet" href="/static/assets/css/font-awesome.min.css">
+		<link type="text/css" rel="stylesheet" href="/static/assets/css/style.css">
+		<link type="text/css" rel="stylesheet" href="/static/assets/css/calendar.css">
+		
+		<link rel="stylesheet" href="/static/assets/css/theme.css">
+
+		<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+		<!--[if IE 7]>
+		<link type="text/css" rel="stylesheet" href="/static/assets/css/font-awesome-ie7.min.css"/>
+		<![endif]-->
+
+		<script src="/static/assets/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+	</head>
+	<body>
+		<!-- BEGIN WRAP -->
+		<div id="wrap">
+			<!-- BEGIN TOP BAR -->
+			<div id="top">
+				<!-- .navbar -->
+				<div class="navbar navbar-inverse navbar-static-top">
+					<div class="navbar-inner">
+						<div class="container-fluid">
+							<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</a>
+							<a class="brand" href=".">Mobilyze PRO</a>
+							<!-- .topnav -->
+							<div class="btn-toolbar topnav">
+								<div class="btn-group">
+									<a class="btn btn-inverse" data-placement="bottom" data-original-title="Logout" rel="tooltip" href="{% url 'auth_logout' %}"><i class="icon-off"></i></a>
+								</div>
+							</div>
+							<!-- /.topnav -->
+							<div class="nav-collapse collapse">
+								<!-- .nav -->
+								<ul class="nav">
+								</ul>
+								<!-- /.nav -->
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- /.navbar -->
+			</div>
+			<!-- END TOP BAR -->
+
+			<!-- BEGIN LEFT	 -->
+			<div id="left">
+			<div id="left">
+				{% include "mobilyze_sidebar.html" %}
+				<!-- .user-media -->
+			</div>
+			</div>
+			<!-- END LEFT -->
+
+			<!-- BEGIN MAIN CONTENT -->
+			<div id="content">
+				<div class="container-fluid outer">
+					<div class="row-fluid">
+						<div class="span12">
+							<div class="box">
+								<header>
+									<h5>Group Summary</h5>
+									<div class="toolbar">
+										<a href="#defaultTable0" data-toggle="collapse" class="accordion-toggle minimize-box">
+											<i class="icon-chevron-up"></i>
+										</a>
+									</div>
+								</header>
+								<div id="defaultTable0" class="body collapse in">
+									<table class="table responsive" style="width: 100%">
+										<thead>
+											<tr>
+												<th>Question</th>
+												<th>Min (Mean)</th>
+												<th>Max (Mean)</th>
+												<th>Mean (Mean)</th>
+												<th>Std. Dev. (Mean)</th>
+												<th></th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for question in questions %}
+												{% if question in categorical %}
+												{% else %}
+													{% with statistics=group_stats|keyvalue:question %}
+														<tr>
+															<td>{{ question|clean_var_name }}</td>
+															<td>{{ statistics.min }}</td>
+															<td>{{ statistics.max }}</td>
+															<td>{{ statistics.mean }}</td>
+															{% if statistics.stddev > 2.5 %}
+																<td style="background-color: #dff0d8">
+																	<strong>{{ statistics.stddev }}</strong>
+																</td>
+															{% else %}
+																<td>
+																	{{ statistics.stddev }}
+																</td>
+															{% endif %}
+															<td><a href="#{% url "mobilyze_num_stats_group" question %}">Field Details&#8230;</a></td>
+														</tr>				
+													{% endwith %}	
+												{% endif %}
+											{% endfor %}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+						<!-- /.span12 -->
+					</div>
+				</div>
+
+				<!-- .outer -->
+				{% for user in users %}
+					<div class="container-fluid outer">
+						<div class="row-fluid">
+							<div class="span12">
+								<div class="box">
+									<header>
+										<h5>{{ user.id }} (Mean Std. Dev: {{ user.mean_std_dev }})</h5>
+										<div class="toolbar">
+											<a href="#defaultTable{{ forloop.counter }}" data-toggle="collapse" class="accordion-toggle minimize-box">
+												<i class="icon-chevron-up"></i>
+											</a>
+										</div>
+									</header>
+									<div id="defaultTable{{ forloop.counter }}" class="body collapse">
+										<table class="table responsive" style="width: 100%">
+											<thead>
+												<tr>
+													<th>Question (Categorical)</th>
+													<th>Response Count</th>
+												</tr>
+											</thead>
+											<tbody>
+												{% for question in user.questions %}
+													{% if question in user.categorical %}
+														{% with statistics=user.statistics|keyvalue:question %}
+															<tr>
+																<td>{{ question|clean_var_name }}</td>
+																<td>{{ statistics.count }}</td>
+															</tr>
+														{% endwith %}
+													{% else %}
+																		
+													{% endif %}
+												{% endfor %}
+											</tbody>
+										</table>
+										<table class="table responsive" style="width: 100%">
+											<thead>
+												<tr>
+													<th>Question (Numeric)</th>
+													<th>Response Count</th>
+													<th>Min</th>
+													<th>Max</th>
+													<th>Mean</th>
+													<th>Std. Dev.</th>
+													<th></th>
+												</tr>
+											</thead>
+											<tbody>
+												{% for question in user.questions %}
+													{% if question in user.categorical %}
+													{% else %}
+														{% with statistics=user.statistics|keyvalue:question %}
+															<tr>
+																<td>{{ question|clean_var_name }}</td>
+																<td>{{ statistics.count }}</td>
+																<td>{{ statistics.min }}</td>
+																<td>{{ statistics.max }}</td>
+																<td>{{ statistics.mean }}</td>
+																{% if statistics.stddev > 2.5 %}
+																	<td style="background-color: #dff0d8">
+																		<strong>{{ statistics.stddev }}</strong>
+																	</td>
+																{% else %}
+																	<td>
+																		{{ statistics.stddev }}
+																	</td>
+																{% endif %}
+																<td><a href="{% url "mobilyze_num_stats" user.id question %}">Field Details&#8230;</a></td>
+															</tr>				
+														{% endwith %}	
+													{% endif %}
+												{% endfor %}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+							<!-- /.span12 -->
+						</div>
+					</div>
+				{% endfor %}
+				<!-- /.outer -->
+			</div>
+			<!-- END CONTENT -->
+
+
+			<!-- #push do not remove -->
+			<div id="push"></div>
+			<!-- /#push -->
+		</div>
+		<!-- END WRAP -->
+
+		<div class="clearfix"></div>
+
+		<!-- BEGIN FOOTER -->
+		<div id="footer">
+			<p>2013 &copy; Center for Behavioral Intervention Technologies, Northwestern University</p>
+		</div>
+		<!-- END FOOTER -->
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="/static/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+		<script src="/static/assets/js/vendor/jquery-migrate-1.1.1.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/jquery-ui.min.js"></script>
+		<script>window.jQuery.ui || document.write('<script src="/static/assets/js/vendor/jquery-ui-1.10.0.custom.min.js"><\/script>')</script>
+		<script src="/static/assets/js/vendor/bootstrap.min.js"></script>
+		<script src="/static/assets/js/lib/jquery.tablesorter.min.js"></script>
+		<script src="/static/assets/js/lib/jquery.mousewheel.js"></script>
+		<script src="/static/assets/js/lib/jquery.sparkline.min.js"></script>
+		<script src="/static/assets/js/lib/flot/jquery.flot.js"></script>
+		<script src="/static/assets/js/lib/flot/jquery.flot.pie.js"></script>
+		<script src="/static/assets/js/lib/flot/jquery.flot.selection.js"></script>
+		<script src="/static/assets/js/lib/flot/jquery.flot.resize.js"></script>
+		<script src="/static/assets/js/lib/fullcalendar.min.js"></script>
+		<script src="/static/assets/js/main.js"></script>
+		<script src="/static/highcharts/js/highcharts.js"></script>
+		<script type="text/javascript">
+			$(function() 
+			{
+				{% for row in complete_rows %}
+					var cats_{{ forloop.counter0 }} = [];
+					var series_{{ forloop.counter0 }} = [];
+
+					{% for field,count in row.responses.items|dict_sort %}
+						{% if field != "TOTAL" and field != "DISTINCT_TIMES" %}
+							cats_{{ forloop.parentloop.counter0 }}.push("{{ field }}");
+							series_{{ forloop.parentloop.counter0 }}.push({{ count }});
+						{% endif %}
+					{% endfor %}
+
+					/* $("#chart_{{ forloop.counter0 }}").highcharts({
+						chart: {
+							type: "column"
+						},
+						title: {
+							text: null
+						},
+						legend:
+						{
+							enabled: false
+						},
+						credits:
+						{
+							enabled: false
+						},
+						xAxis: {
+							categories:	cats_{{ forloop.counter0 }},
+							labels: {
+								enabled: false
+							}
+						},
+						yAxis: {
+							min: 0,
+							title: {
+								enabled: false
+							}
+						},
+						series: [{
+								name: "Responses",
+								data: series_{{ forloop.counter0 }}
+							}]
+					}); */
+				{% endfor %}
+				
+				
+				dashboard();
+			});
+		</script>
+	</body>
+</html>

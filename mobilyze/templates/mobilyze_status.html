@@ -64,28 +64,8 @@
 
 			<!-- BEGIN LEFT	 -->
 			<div id="left">
+				{% include "mobilyze_sidebar.html" %}
 				<!-- .user-media -->
-				<div class="media user-media hidden-phone">
-					<a href="" class="user-link">
-						<img src="/static/assets/img/user.gif" alt="" class="media-object img-polaroid user-img">
-					</a>
-					<div class="media-body hidden-tablet">
-						<h5 class="media-heading">{{ request.user.username }}</h5>
-						<ul class="unstyled user-info">
-							<li>Last Login: <br/>
-								<small>{{ request.user.last_login }}</small>
-							</li>
-						</ul>
-					</div>
-				</div>
-				<div class="media user-media">
-					<form action="{% url 'add_id' %}" method="post">
-						{% csrf_token %}
-             			<label for="new_id" class="control-label">Add New ID:</label>
-             			<input type="text" name="new_id" id="new_id" style="width: 75%;"/>
-						<input type="submit" value="Add ID" class="btn btn-primary">
-             		</form>
-				</div>
 			</div>
 			<!-- END LEFT -->
 

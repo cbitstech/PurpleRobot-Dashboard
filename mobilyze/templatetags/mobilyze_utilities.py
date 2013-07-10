@@ -21,3 +21,11 @@ def listsort(value):
         return value
     
     listsort.is_safe = True
+
+@register.filter
+def keyvalue(dict, key):    
+    return dict[key]
+
+@register.filter
+def clean_var_name(name):    
+	return name.replace('FEATURE_VALUE_DT_', '').replace('R1', '')

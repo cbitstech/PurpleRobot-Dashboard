@@ -13,13 +13,17 @@ class Study(models.Model):
     def __unicode__(self):
         return self.name
         
-    def participant_ids(self, user, active=True):
+    def participant_ids(self, user, active=None):
         participants = []
         
         for manager in self.managers.all():
             if manager.pk == user.pk:
-                for p in self.participants.filter(active=active).order_by('participant_id'):
-                    participants.append(p.participant_id)
+                if active == None:
+                    for p in self.participants.all().order_by('participant_id'):
+                        participants.append(p.participant_id)
+                else:
+                    for p in self.participants.filter(active=active).order_by('participant_id'):
+                        participants.append(p.participant_id)
         
         return participants
 

@@ -1,3 +1,4 @@
+import datetime
 import psycopg2
 
 from django.contrib.gis.db import models
@@ -81,9 +82,12 @@ class DataSource(models.Model):
         cursor = conn.cursor()
 
         # print(cursor.mogrify('SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s);', (start, end,)))
-        cursor.execute('SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s);', (start, end,))
+        cursor.execute('SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s AND "' + column_name + '" IS NOT NULL);', (start, end,))
         
         for result in cursor:
+            if result[1] == '':
+                result[1] = 'empty-string'
+                
             values.append((result[0], result[1],))
         
         conn.close()
@@ -96,27 +100,30 @@ class DataSource(models.Model):
         if len(original_names) < 1:
             return []
         
-    	column_names = []
+        column_names = []
     
         for i in range(0, len(original_names)):
             column_names.append('"' + original_names[i][0] + '"')
         
-        names_string = ','.join(column_names)
+        # names_string = ','.join(column_names)
         
         conn = psycopg2.connect(self.location)
-        cursor = conn.cursor()
         
         fetched = []
 
-        if len(names_string) > 0:
-            cursor.execute('SELECT ' + names_string + ' FROM "' + table_name + '" WHERE ("eventDateTime" <= %s) ORDER BY "eventDateTime" DESC LIMIT 1;', (point_time,))
+        if len(column_names) > 0:
+            for column in column_names:
+                cursor = conn.cursor()
+                cursor.execute('SELECT ' + column + ' FROM "' + table_name + '" WHERE ("eventDateTime" <= %s AND ' + column + ' IS NOT NULL) ORDER BY "eventDateTime" DESC LIMIT 1;', (point_time,))
+                
+                if cursor.rowcount > 0:
+                    for result in cursor:
+                        fetched.append(result[0])
+                else:
+                    fetched.append(None)
         
-        
-            for result in cursor:
-                fetched.extend(result)
-        
-            conn.close()
-            cursor.close()
+                cursor.close()
+        conn.close()
         
         return fetched
     

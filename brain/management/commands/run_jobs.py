@@ -29,8 +29,6 @@ class Command(BaseCommand):
             job.job_start = datetime.datetime.now()
             job.save()
             
-            print(str(params))
-            
             # Add parameters for setting ranges...
             
             past = datetime.datetime(datetime.MINYEAR, 1, 1)
@@ -67,7 +65,7 @@ class Command(BaseCommand):
                             for i in range(0, len(columns)):
                                 column = columns[i]
                                 
-                                column_key = table + '_' + column[0]
+                                column_key = slugify(table + '_' + column[0])
                                 
                                 if row_keys.count(column_key) == 0:
                                     row_keys.append(column_key)
@@ -80,12 +78,22 @@ class Command(BaseCommand):
                                     except KeyError:
                                         categorical_values[column_key] = column_values
                                     
-                                    column_values.add(slugify(unicode(str(fetched[i]))))
+                                    str_value = slugify(unicode(str(fetched[i])))
+                                    
+                                    if str_value.strip() == '':
+                                        str_value = 'empty_string'
+                                    
+                                    column_values.add(str_value)
                                     
                                 if fetched[i] == True or fetched[i] == False:
                                     row_dict[column_key] = slugify(unicode(str(fetched[i])))
                                 elif column[1] == 'text':
-                                    row_dict[column_key] = slugify(unicode(fetched[i]))
+                                    str_value = slugify(unicode(fetched[i]))
+                                    
+                                    if str_value.strip() == '':
+                                        str_value = 'empty_string'
+                                    
+                                    row_dict[column_key] = str_value
                                 else:
                                     row_dict[column_key] = fetched[i]
                             
@@ -93,7 +101,7 @@ class Command(BaseCommand):
     
                 row_keys.sort()            
                     
-                data = { 'relation': label_table_name + '_' + label_column_name, 'description': '' }
+                data = { 'relation': slugify(label_table_name + '_' + label_column_name), 'description': '' }
                 
                 attributes = []
                 
@@ -108,7 +116,7 @@ class Command(BaseCommand):
                         for value in categorical_values[row_key]:
                             value_def.append(value)
                     
-                    if value_def == 'REAL' or len(value_def) > 1:        
+                    if ('_sensor_dt_' in row_key) == False and ('randomnoiseprobe' in row_key) == False and (value_def == 'REAL' or len(value_def) > 2 or (((None in value_def) == False) and len(value_def) > 1)):        
                         attributes.append((row_key, value_def))
                     else:
                         ignore.append(row_key)

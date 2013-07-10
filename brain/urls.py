@@ -5,5 +5,6 @@ from django.views.decorators.cache import cache_page
 from views import *
 
 urlpatterns = patterns('',
+    url(r'^analyses$', all_analyses, name='all_analyses'),
     url(r'^(?P<report_id>\d+)/content$', report_contents, name='brain_report_contents'),
 )
