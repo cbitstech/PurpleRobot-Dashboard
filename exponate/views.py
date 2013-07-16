@@ -7,6 +7,9 @@ from django.http import HttpResponse
 from participants.models import *
 from pr_integration.util import database_exists, fetch_data, table_exists
 
+from exponate.templatetags.exponate_utilities import logged_in_or_basicauth
+
+@logged_in_or_basicauth('EXPONATE')
 def exponate_response(request):
     output = {}
     
