@@ -159,6 +159,7 @@
 															<tr>
 																<td>{{ question|clean_var_name }}</td>
 																<td>{{ statistics.count }}</td>
+																<td><a href="{% url 'mobilyze_nom_stats' user.id question %}">Field Details&#8230;</a></td>
 															</tr>
 														{% endwith %}
 													{% else %}

@@ -26,7 +26,7 @@ from django.utils import simplejson
 from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
 
-from brain.models import CachedAnalysis
+from brain.models import CachedAnalysis, ReportJob
 from data_sources.models import DataSource, DataReport
 from participants.models import *
 from pr_integration.util import database_exists, fetch_data, table_exists
@@ -210,8 +210,16 @@ def fetch_status(id):
         response_field = 'GUID'
         
         if table_exists(hash, response_table) == False:
-            report['status'] = 'Error'
-            report['errors'].append('No such table ' + response_table + ' for ID ' + id + '.')
+            if table_exists(hash, 'mobilyze_eav') == False:
+                report['status'] = 'Error'
+                report['errors'].append('No such table ' + 'mobilyze_eav' + ' for ID ' + id + '.')
+            else:
+                values = fetch_data(hash, 'mobilyze_eav', response_field, start, now)
+        
+                if len(values) < 1:
+                    report['status'] = 'Error'
+                    report['errors'].append('No recent responses from PRO.')
+
         else:
             values = fetch_data(hash, response_table, response_field, start, now)
     
@@ -224,7 +232,12 @@ def fetch_status(id):
         try:
             report['last_response'] = values[-1][0]
         except:
-            report['last_response'] = None
+            values = fetch_data(hash, 'mobilyze_eav', response_field, datetime.datetime.min, now, limit=5)
+    
+            try:
+                report['last_response'] = values[-1][0]
+            except:
+                report['last_response'] = None
 
         if report['last_response'] != None:
             report['last_response'] = pytz.utc.localize(report['last_response'])
@@ -254,8 +267,28 @@ def fetch_completion(id):
         total_count = 0
 
         if table_exists(hash, response_table) == False:
-            report['status'] = 'Error'
-            report['errors'].append('No such table ' + response_table + ' for ID ' + id + '.')
+            if table_exists(hash, 'mobilyze_eav') == False:
+                report['status'] = 'Error'
+                report['errors'].append('No such table ' + 'mobilyze_eav' + ' for ID ' + id + '.')
+            else:
+                last_session_date = datetime.datetime.max
+
+                min_delta = datetime.timedelta(0, 60)
+                session_delta = datetime.timedelta(0, 1800)
+                
+                session_count = 0
+
+                values = fetch_data(hash, 'mobilyze_eav', 'insertedTime', start, now)
+
+                for value in values:
+                    if value[1] != None:
+                        if (last_session_date - value[0]) > session_delta:
+                            session_count += 1
+                            last_session_date = value[0]
+                        
+                        total_count += 1
+                
+                responses['DISTINCT_TIMES'] = session_count
         else:
             for response_field in MOBILYZE_QUESTIONS:
                 values = fetch_data(hash, response_table, response_field, start, now)
@@ -307,7 +340,10 @@ def mobilyze_quality(request):
     
     for study in Study.objects.filter(slug='mobilyze-2013'):
         for id in study.participant_ids(request.user):
-            users.append(fetch_responses(id))
+            user = fetch_responses(id)
+            
+            if 'mean_std_dev' in user:
+                users.append(user)
     
     c = RequestContext(request)
     
@@ -573,9 +609,6 @@ def mobilyze_num_stats(request, user_id='group', question=''):
 
     return render_to_response('mobilyze_numeric.html', c)
 
-    
-    return HttpResponse("Coming Soon.", content_type="text/plain")
-
 @login_required
 def mobilyze_demographic(request):
     workbook = xlwt.Workbook()
@@ -670,3 +703,21 @@ def mobilyze_numeric(request):
     io_str.close()
     
     return response
+
+
+@login_required
+def mobilyze_nom_stats(request, user_id='group', question=''):
+    c = RequestContext(request)
+    c['request'] = request
+    c['user_id'] = user_id
+    c['label'] = question
+    
+    app_key = user_id + '_' + question
+    
+    for job in ReportJob.objects.filter(app_key=app_key):
+        try:
+            c['stats'] = json.loads(job.stats_file.read())
+        except:
+            pass
+
+    return render_to_response('mobilyze_nominal.html', c)

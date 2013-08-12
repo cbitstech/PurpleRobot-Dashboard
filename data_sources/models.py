@@ -81,14 +81,17 @@ class DataSource(models.Model):
         
         cursor = conn.cursor()
 
-        # print(cursor.mogrify('SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s);', (start, end,)))
-        cursor.execute('SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s AND "' + column_name + '" IS NOT NULL);', (start, end,))
-        
-        for result in cursor:
-            if result[1] == '':
-                result[1] = 'empty-string'
-                
-            values.append((result[0], result[1],))
+        try:
+            # print(cursor.mogrify('SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s);', (start, end,)))
+            cursor.execute('SELECT "eventDateTime","' + column_name + '" FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s AND "' + column_name + '" IS NOT NULL);', (start, end,))
+            
+            for result in cursor:
+                if result[1] == '':
+                    result[1] = 'empty-string'
+                    
+                values.append((result[0], result[1],))
+        except psycopg2.ProgrammingError:
+            pass
         
         conn.close()
         cursor.close()

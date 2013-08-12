@@ -6,6 +6,7 @@ class ReportJob(models.Model):
     objects = models.GeoManager()
     
     name = models.CharField(max_length=128)
+    app_key = models.CharField(max_length=256, null=True, blank=True)
 
     parameters = models.TextField(max_length=1048576);
     job_start = models.DateTimeField(null=True, blank=True)
@@ -77,3 +78,15 @@ class CachedAnalysis(models.Model):
     generated = models.DateTimeField(auto_now_add=True)
     
     analysis = models.TextField(max_length=1048576)
+
+
+class GeneratedModel(models.Model):
+    objects = models.GeoManager()
+    
+    name = models.CharField(max_length=1024)
+    type = models.CharField(max_length=1024)
+    description = models.TextField(max_length=1048576)
+    generated = models.DateTimeField(auto_now_add=True)
+
+    model_file = models.FileField(upload_to='models')
+    

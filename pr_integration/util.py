@@ -6,7 +6,7 @@ IGNORE = ['SourceValue'];
 
 def database_exists(database):
     try:
-        db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
+        db_string = 'host=\'db2.cbits.northwestern.edu\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
         conn = psycopg2.connect(db_string)
         cursor = conn.cursor()
 
@@ -20,7 +20,7 @@ def database_exists(database):
     return False
 
 def table_exists(database, table_name):
-    db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
+    db_string = 'host=\'db2.cbits.northwestern.edu\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
         
@@ -38,7 +38,7 @@ def table_exists(database, table_name):
     return exists
 
 def fetch_columns(database, table):
-    db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
+    db_string = 'host=\'db2.cbits.northwestern.edu\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
         
@@ -58,7 +58,7 @@ def fetch_columns(database, table):
     return columns
 
 def fetch_tables(database):
-    db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
+    db_string = 'host=\'db2.cbits.northwestern.edu\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
         
@@ -88,7 +88,7 @@ def fetch_tables(database):
 
 
 def fetch_data(database, table_name, column_names, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0, filter=False):
-    db_string = 'host=\'165.124.171.126\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
+    db_string = 'host=\'db2.cbits.northwestern.edu\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
 
@@ -144,7 +144,7 @@ def fetch_data(database, table_name, column_names, start=datetime.datetime.min, 
     return list(reversed(values))
 
 def all_databases():
-    db_string = 'host=\'165.124.171.126\' dbname=\'postgres\' user=\'postgres\' password=\'mohrLab1\''
+    db_string = 'host=\'db2.cbits.northwestern.edu\' dbname=\'postgres\' user=\'postgres\' password=\'mohrLab1\''
 
     conn = psycopg2.connect(db_string)
     
