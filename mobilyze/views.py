@@ -285,6 +285,14 @@ def fetch_completion(id):
                         if (last_session_date - value[0]) > session_delta:
                             session_count += 1
                             last_session_date = value[0]
+
+                values = fetch_data(hash, 'mobilyze_eav', 'FEATURE_VALUE_DT_name', start, now)
+                
+                last_value = ''
+
+                for value in values:
+                    if value[1] != None and value[1] != last_value and value[1] != '':
+                        last_value = value[1]
                         
                         total_count += 1
                 
@@ -632,18 +640,37 @@ def mobilyze_demographic(request):
             m.update(id)
     
             hash = m.hexdigest()
-
-            for column in CATEGORICAL_QUESTIONS:
-                values = fetch_data(hash, table, column, start, now, filter=True)
+            
+            if database_exists(hash):
+                if table_exists(hash, table):
+                    for column in CATEGORICAL_QUESTIONS:
+                        values = fetch_data(hash, table, column, start, now, filter=True)
                 
-                for value in values:
-                    sheet.write(row_counter, 0, row_counter)
-                    sheet.write(row_counter, 1, id)
-                    sheet.write(row_counter, 2, column.replace('FEATURE_VALUE_DT_', ''))
-                    sheet.write(row_counter, 3, value[0].isoformat(' '))
-                    sheet.write(row_counter, 4, value[1])
+                        for value in values:
+                            sheet.write(row_counter, 0, row_counter)
+                            sheet.write(row_counter, 1, id)
+                            sheet.write(row_counter, 2, column.replace('FEATURE_VALUE_DT_', ''))
+                            sheet.write(row_counter, 3, value[0].isoformat(' '))
+                            sheet.write(row_counter, 4, value[1])
                     
-                    row_counter += 1
+                            row_counter += 1
+                else:
+                    values = fetch_data(hash, 'mobilyze_eav', 'FEATURE_VALUE_DT_name,FEATURE_VALUE_DT_value', start, now, filter=False)
+                
+                    last_name = None
+                
+                    for value in values:
+                        name = 'FEATURE_VALUE_DT_' + value[1]
+                        
+                        if name in CATEGORICAL_QUESTIONS and last_name != name:
+                            last_name = name
+                            sheet.write(row_counter, 0, row_counter)
+                            sheet.write(row_counter, 1, id)
+                            sheet.write(row_counter, 2, value[1])
+                            sheet.write(row_counter, 3, value[0].isoformat(' '))
+                            sheet.write(row_counter, 4, value[2])
+                    
+                            row_counter += 1
                     
     io_str = StringIO.StringIO()
     workbook.save(io_str)
@@ -678,21 +705,40 @@ def mobilyze_numeric(request):
             m.update(id)
     
             hash = m.hexdigest()
-
-            for column in MOBILYZE_QUESTIONS:
-                if column in CATEGORICAL_QUESTIONS:
-                    pass
+            
+            if database_exists(hash):
+                if table_exists(hash, table):
+                    for column in MOBILYZE_QUESTIONS:
+                        if column in CATEGORICAL_QUESTIONS:
+                            pass
+                        else:
+                            values = fetch_data(hash, table, column, start, now, filter=True)
+                
+                            for value in values:
+                                sheet.write(row_counter, 0, row_counter)
+                                sheet.write(row_counter, 1, id)
+                                sheet.write(row_counter, 2, column.replace('FEATURE_VALUE_DT_', ''))
+                                sheet.write(row_counter, 3, value[0].isoformat(' '))
+                                sheet.write(row_counter, 4, value[1])
+                    
+                                row_counter += 1
                 else:
-                    values = fetch_data(hash, table, column, start, now, filter=True)
+                    values = fetch_data(hash, 'mobilyze_eav', 'FEATURE_VALUE_DT_name,FEATURE_VALUE_DT_value', start, now, filter=False)
+                
+                    last_name = None
                 
                     for value in values:
-                        sheet.write(row_counter, 0, row_counter)
-                        sheet.write(row_counter, 1, id)
-                        sheet.write(row_counter, 2, column.replace('FEATURE_VALUE_DT_', ''))
-                        sheet.write(row_counter, 3, value[0].isoformat(' '))
-                        sheet.write(row_counter, 4, value[1])
+                        name = 'FEATURE_VALUE_DT_' + value[1]
+                        
+                        if name in MOBILYZE_QUESTIONS and (name in CATEGORICAL_QUESTIONS) == False and last_name != name:
+                            last_name = name
+                            sheet.write(row_counter, 0, row_counter)
+                            sheet.write(row_counter, 1, id)
+                            sheet.write(row_counter, 2, value[1])
+                            sheet.write(row_counter, 3, value[0].isoformat(' '))
+                            sheet.write(row_counter, 4, value[2])
                     
-                        row_counter += 1
+                            row_counter += 1
                     
     io_str = StringIO.StringIO()
     workbook.save(io_str)

@@ -110,10 +110,10 @@ def fetch_data(database, table_name, column_names, start=datetime.datetime.min, 
         if distinct:
             query = 'SELECT DISTINCT ' + column_strings + ' FROM "' + table_name + '" WHERE ("eventDateTime" >= %s AND "eventDateTime" <= %s)'
         
-        if filter:    
-            query += ' ORDER BY "eventDateTime" DESC'
-        elif limit > 0:
+        if limit > 0:
             query += ' ORDER BY "eventDateTime" DESC LIMIT ' + str(limit)
+        else:
+            query += ' ORDER BY "eventDateTime" DESC'
             
         query += ';'
 
