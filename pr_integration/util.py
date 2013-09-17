@@ -87,7 +87,7 @@ def fetch_tables(database):
     return tables
 
 
-def fetch_data(database, table_name, column_names, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0, filter=False):
+def fetch_data(database, table_name, column_names, start=datetime.datetime.min, end=datetime.datetime.max, distinct=False, limit=0, filter=False, debug=False):
     db_string = 'host=\'db2.cbits.northwestern.edu\' dbname=\'' + database + '\' user=\'postgres\' password=\'mohrLab1\''
     conn = psycopg2.connect(db_string)
     cursor = conn.cursor()
@@ -112,11 +112,11 @@ def fetch_data(database, table_name, column_names, start=datetime.datetime.min, 
         
         if limit > 0:
             query += ' ORDER BY "eventDateTime" DESC LIMIT ' + str(limit)
-        else:
+        elif distinct == False:
             query += ' ORDER BY "eventDateTime" DESC'
             
         query += ';'
-
+        
         cursor.execute(query, (start, end,))
         
         last_saved = datetime.datetime.max

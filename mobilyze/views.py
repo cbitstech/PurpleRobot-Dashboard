@@ -31,6 +31,8 @@ from data_sources.models import DataSource, DataReport
 from participants.models import *
 from pr_integration.util import database_exists, fetch_data, table_exists
 
+from models import *
+
 MOBILYZE_QUESTIONS = [
     'FEATURE_VALUE_DT_CalmR1',
     'FEATURE_VALUE_DT_StressR1',
@@ -77,65 +79,12 @@ CATEGORICAL_QUESTIONS = [
 ]
 
 def fetch_responses(id):
-    m = hashlib.md5()
-    m.update(id)
+    reports = CachedMobilyzeReport.objects.filter(user_id=id, report_type='responses').order_by('-pk')
     
-    hash = m.hexdigest()
+    if reports.count() > 0:
+        return json.loads(reports[0].report)
 
-    report = { 'status': 'OK', 'errors': [], 'id': id,  'hash': hash, 'questions': MOBILYZE_QUESTIONS, 'categorical': CATEGORICAL_QUESTIONS }
-    
-    if database_exists(hash) == False:
-        report['status'] = 'Error'
-        report['errors'].append('No such database ' + hash + ' for ID ' + id + '.')
-    else:
-        stats = {}
-        group_stats = {}
-        
-        now = datetime.datetime.utcnow()
-        start = datetime.datetime.utcfromtimestamp(0)
-        
-        response_table = 'undefined'
-        
-        total_count = 0
-        
-        std_devs = []
-
-        if table_exists(hash, response_table) == False:
-            report['status'] = 'Error'
-            report['errors'].append('No such table ' + response_table + ' for ID ' + id + '.')
-        else:
-            for response_field in MOBILYZE_QUESTIONS:
-                try:
-                    stats[response_field]
-                except KeyError:
-                    stats[response_field] = {}
-                    
-                values = fetch_data(hash, response_table, response_field, start, now, filter=True)
-
-                stats[response_field]['count'] = 0
-                
-                num_values = []
-
-                for value in values:
-                    if value[1] != None and str(value[1]).strip() != '':
-                        if response_field in CATEGORICAL_QUESTIONS:
-                            pass
-                        else:
-                            num_values.append(float(value[1]))
-
-                        stats[response_field]['count'] += 1
-                        
-                if len(num_values) > 0:
-                    stats[response_field]['min'] = numpy.amin(num_values)
-                    stats[response_field]['max'] = numpy.amax(num_values)
-                    stats[response_field]['mean'] = numpy.mean(num_values)
-                    stats[response_field]['stddev'] = numpy.std(num_values)
-                    
-                    std_devs.append(stats[response_field]['stddev'])
-        
-        report['statistics'] = stats
-        report['mean_std_dev'] = numpy.mean(std_devs)
-        
+    report = { 'status': 'Error', 'errors': ['No cached copy available yet.'], 'id': id,  'hash': hash }
     return report
 
 def fetch_group_stats(users):
@@ -168,157 +117,23 @@ def fetch_group_stats(users):
     return stats
 
 def fetch_status(id):
-    m = hashlib.md5()
-    m.update(id)
-    
-    hash = m.hexdigest()
+    reports = CachedMobilyzeReport.objects.filter(user_id=id, report_type='status').order_by('-pk')
 
-    report = { 'status': 'OK', 'errors': [], 'id': id,  'hash': hash }
-    
-    if database_exists(hash) == False:
-        report['status'] = 'Error'
-        report['errors'].append('No such database ' + hash + ' for ID ' + id + '.')
-    else:
-        now = datetime.datetime.utcnow()
-        start = now - datetime.timedelta(0, 3600 * 6)
-        
-        sensor_table = 'RobotHealthProbe'
-        sensor_field = 'ACTIVE_RUNTIME'
-        
-        if table_exists(hash, sensor_table) == False:
-            report['status'] = 'Error'
-            report['errors'].append('No such table ' + sensor_table + ' for ID ' + id + '.')
-        else:
-            values = fetch_data(hash, sensor_table, sensor_field, start, now)
-    
-            if len(values) < 1:
-                report['status'] = 'Error'
-                report['errors'].append('No recent data from sensor ' + sensor_table + '.' + sensor_field + '.')
-                
-        values = fetch_data(hash, sensor_table, sensor_field, datetime.datetime.min, now, limit=5)
-        
-        try:
-            report['last_sensor'] = values[-1][0]
-        except:
-            report['last_sensor'] = None
-            
-        if report['last_sensor'] != None:
-            report['last_sensor'] = pytz.utc.localize(report['last_sensor'])
-            report['last_sensor'] = report['last_sensor'].astimezone(timezone('US/Central'))
+    if reports.count() > 0:
+        return json.loads(reports[0].report)
 
-        response_table = 'undefined'
-        response_field = 'GUID'
-        
-        if table_exists(hash, response_table) == False:
-            if table_exists(hash, 'mobilyze_eav') == False:
-                report['status'] = 'Error'
-                report['errors'].append('No such table ' + 'mobilyze_eav' + ' for ID ' + id + '.')
-            else:
-                values = fetch_data(hash, 'mobilyze_eav', response_field, start, now)
-        
-                if len(values) < 1:
-                    report['status'] = 'Error'
-                    report['errors'].append('No recent responses from PRO.')
-
-        else:
-            values = fetch_data(hash, response_table, response_field, start, now)
-    
-            if len(values) < 1:
-                report['status'] = 'Error'
-                report['errors'].append('No recent responses from PRO.')
-
-        values = fetch_data(hash, response_table, response_field, datetime.datetime.min, now, limit=5)
-
-        try:
-            report['last_response'] = values[-1][0]
-        except:
-            values = fetch_data(hash, 'mobilyze_eav', response_field, datetime.datetime.min, now, limit=5)
-    
-            try:
-                report['last_response'] = values[-1][0]
-            except:
-                report['last_response'] = None
-
-        if report['last_response'] != None:
-            report['last_response'] = pytz.utc.localize(report['last_response'])
-            report['last_response'] = report['last_response'].astimezone(timezone('US/Central'))
-
+    report = { 'status': 'Error', 'errors': ['No cached copy available yet.'], 'id': id,  'hash': hash }
     return report
 
 def fetch_completion(id):
-    m = hashlib.md5()
-    m.update(id)
+    reports = CachedMobilyzeReport.objects.filter(user_id=id, report_type='completion').order_by('-pk')
     
-    hash = m.hexdigest()
-
-    report = { 'status': 'OK', 'errors': [], 'id': id,  'hash': hash }
+    print('COMPLETE_COUNT (' + id + ') ' + str(reports.count()))
     
-    if database_exists(hash) == False:
-        report['status'] = 'Error'
-        report['errors'].append('No such database ' + hash + ' for ID ' + id + '.')
-    else:
-        now = datetime.datetime.utcnow()
-        start = datetime.datetime.utcfromtimestamp(0)
-        
-        response_table = 'undefined'
-        
-        responses = {}
-        
-        total_count = 0
+    if reports.count() > 0:
+        return json.loads(reports[0].report)
 
-        if table_exists(hash, response_table) == False:
-            if table_exists(hash, 'mobilyze_eav') == False:
-                report['status'] = 'Error'
-                report['errors'].append('No such table ' + 'mobilyze_eav' + ' for ID ' + id + '.')
-            else:
-                last_session_date = datetime.datetime.max
-
-                min_delta = datetime.timedelta(0, 60)
-                session_delta = datetime.timedelta(0, 1800)
-                
-                session_count = 0
-
-                values = fetch_data(hash, 'mobilyze_eav', 'insertedTime', start, now)
-
-                for value in values:
-                    if value[1] != None:
-                        if (last_session_date - value[0]) > session_delta:
-                            session_count += 1
-                            last_session_date = value[0]
-
-                values = fetch_data(hash, 'mobilyze_eav', 'FEATURE_VALUE_DT_name', start, now)
-                
-                last_value = ''
-
-                for value in values:
-                    if value[1] != None and value[1] != last_value and value[1] != '':
-                        last_value = value[1]
-                        
-                        total_count += 1
-                
-                responses['DISTINCT_TIMES'] = session_count
-        else:
-            for response_field in MOBILYZE_QUESTIONS:
-                values = fetch_data(hash, response_table, response_field, start, now)
-                
-                response_count = 0
-                
-                for value in values:
-                    if value[1] != None:
-                        response_count += 1
-                
-                total_count += response_count
-                        
-                responses[response_field] = response_count
-
-                values = fetch_data(hash, response_table, 'insertedTime', start, now, distinct=True)
-                responses['DISTINCT_TIMES'] = len(values)
-
-
-        responses['TOTAL'] = total_count
-        
-        report['responses'] = responses
-        
+    report = { 'status': 'Error', 'errors': ['No cached copy available yet.'], 'id': id,  'hash': hash }
     return report
     
 @login_required
@@ -719,7 +534,11 @@ def mobilyze_numeric(request):
                                 sheet.write(row_counter, 1, id)
                                 sheet.write(row_counter, 2, column.replace('FEATURE_VALUE_DT_', ''))
                                 sheet.write(row_counter, 3, value[0].isoformat(' '))
-                                sheet.write(row_counter, 4, value[1])
+
+                                try:
+                                    sheet.write(row_counter, 4, float(value[1]))
+                                except:
+                                    sheet.write(row_counter, 4, value[1])
                     
                                 row_counter += 1
                 else:
@@ -736,8 +555,12 @@ def mobilyze_numeric(request):
                             sheet.write(row_counter, 1, id)
                             sheet.write(row_counter, 2, value[1])
                             sheet.write(row_counter, 3, value[0].isoformat(' '))
-                            sheet.write(row_counter, 4, value[2])
-                    
+                            
+                            try:
+                                sheet.write(row_counter, 4, float(value[2]))
+                            except:
+                                sheet.write(row_counter, 4, value[2])
+                                
                             row_counter += 1
                     
     io_str = StringIO.StringIO()
@@ -749,7 +572,6 @@ def mobilyze_numeric(request):
     io_str.close()
     
     return response
-
 
 @login_required
 def mobilyze_nom_stats(request, user_id='group', question=''):
