@@ -345,7 +345,7 @@ class Command(BaseCommand):
         for study in Study.objects.filter(slug='mobilyze-2013'):
             for id in study.participant_ids(admin_user, active=True):
                 print('Generating ' + id + ' status report...')
-                reports = CachedMobilyzeReport.objects.filter(user_id=id).order_by('-pk')
+                reports = CachedMobilyzeReport.objects.filter(user_id=id, report_type='status').order_by('-pk')
             
                 last_report = None
                 report_type = 'unknown'
@@ -371,7 +371,7 @@ class Command(BaseCommand):
 
             for id in study.participant_ids(admin_user, active=False):
                 print('Generating ' + id + ' completion report...')
-                reports = CachedMobilyzeReport.objects.filter(user_id=id).order_by('-pk')
+                reports = CachedMobilyzeReport.objects.filter(user_id=id, report_type='completion').order_by('-pk')
             
                 last_report = None
                 report_type = 'unknown'

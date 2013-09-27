@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 REPORT_TYPES = (
     ('completion', 'Completion'),
     ('status', 'Status'),
+    ('responses', 'Responses'),
 )
 
 class CachedMobilyzeReport(models.Model):

@@ -7,6 +7,7 @@ import pytz
 from pytz import timezone
 import scipy
 import scipy.stats
+from sexpy import String as S
 import StringIO
 import time
 import urllib2
@@ -589,3 +590,51 @@ def mobilyze_nom_stats(request, user_id='group', question=''):
             pass
 
     return render_to_response('mobilyze_nominal.html', c)
+
+def sexp(obj):
+    if isinstance(obj, S):
+        return '"' + str(obj) + '"'
+    elif isinstance(obj, bool):
+        if obj:
+            return '#t'
+        
+        return '#f'
+    elif isinstance(obj, (list, tuple)):
+        output = '('
+        
+        for item in list(obj):
+            if len(output) > 1:
+                output += ' '
+                
+            output += sexp(item)
+            
+        output += ')'
+        
+        return output
+    elif obj != None:
+        return str(obj)
+    
+    return '()'
+
+@csrf_exempt
+def scheme_config(request):
+    values_list = []
+    
+    for key,value in request.REQUEST.iteritems():
+        if value == 'TRUE':
+            values_list.append((S(key), '.', True))
+        elif value == 'FALSE':
+            values_list.append((S(key), '.', False))
+        else:
+            values_list.append((S(key), '.', S(value)))
+        
+    config = ("begin", ("pr-update-config", ("quote", values_list)))
+    
+    return HttpResponse(sexp(config), content_type="text/plain")
+            
+
+
+
+
+
+

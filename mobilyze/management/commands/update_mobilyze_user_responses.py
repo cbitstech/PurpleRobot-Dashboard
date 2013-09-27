@@ -146,10 +146,10 @@ class Command(BaseCommand):
         for study in Study.objects.filter(slug='mobilyze-2013'):
             for id in study.participant_ids(admin_user):
                 print('Generating ' + id + ' responses report...')
-                reports = CachedMobilyzeReport.objects.filter(user_id=id).order_by('-pk')
+                reports = CachedMobilyzeReport.objects.filter(user_id=id, report_type='responses').order_by('-pk')
             
                 last_report = None
-                report_type = 'unknown'
+                report_type = 'responses'
                 json_string = None
             
                 if reports.count() > 0:
