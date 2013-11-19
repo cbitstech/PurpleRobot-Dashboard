@@ -2,6 +2,7 @@ import arff
 import datetime
 import json
 import uuid
+import math
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
@@ -229,7 +230,10 @@ class Command(BaseCommand):
                     for row_key in row_keys:
                         if ignore.count(row_key) == 0:
                             try:
-                                data_row.append(row_dict[row_key])
+                                if row_dict[row_key] in (float("inf"), float("-inf")):
+                                    data_row.append(None)
+                                else:
+                                    data_row.append(row_dict[row_key])
                             except KeyError:
                                 data_row.append(None)
                     

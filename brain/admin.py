@@ -4,9 +4,9 @@ from brain.models import *
 
 class ReportJobAdmin(admin.ModelAdmin):
     search_fields = ['app_key', 'name']
-    list_display = ('name', 'app_key', 'job_start', 'job_end', 'result_type',)
+    list_display = ('name', 'app_key', 'job_start', 'job_end', 'result_type', 'stats_file')
 
-    actions = ['reset_dates']
+    actions = ['reset_dates', 'reset_models']
 
     def reset_dates(self, request, queryset):
         count = 0
@@ -24,6 +24,21 @@ class ReportJobAdmin(admin.ModelAdmin):
             
         self.message_user(request, "%s successfully updated." % message_bit)
 
+
+    def reset_models(self, request, queryset):
+        count = 0
+        for job in queryset:
+            job.stats_file = None
+            job.save()
+            
+            count += 1
+
+        if count == 1:
+            message_bit = "1 job was"
+        else:
+            message_bit = "%s jobs were" % count
+            
+        self.message_user(request, "%s successfully updated." % message_bit)
 
 admin.site.register(ReportJob, ReportJobAdmin)
 

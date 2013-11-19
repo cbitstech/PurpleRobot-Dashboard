@@ -4,11 +4,13 @@ import json
 import numbers
 import numpy
 import pytz
+import math
 from pytz import timezone
 import scipy
 import scipy.stats
 from sexpy import String as S
 import StringIO
+import string
 import time
 import urllib2
 import xlwt
@@ -128,8 +130,6 @@ def fetch_status(id):
 
 def fetch_completion(id):
     reports = CachedMobilyzeReport.objects.filter(user_id=id, report_type='completion').order_by('-pk')
-    
-    print('COMPLETE_COUNT (' + id + ') ' + str(reports.count()))
     
     if reports.count() > 0:
         return json.loads(reports[0].report)
@@ -632,9 +632,362 @@ def scheme_config(request):
     
     return HttpResponse(sexp(config), content_type="text/plain")
             
+            
+@login_required
+def mobilyze_data_report(request, user_id='group', question=''):
+    workbook = xlwt.Workbook()
+    categorical = workbook.add_sheet('Categorical')
+
+    keys = []
+    
+    for job in ReportJob.objects.all():
+        keys.append(job.app_key)
+
+    matrices = {}
+    labels = []
+
+    for key in keys:
+        job = ReportJob.objects.filter(app_key=key).order_by('-job_end')[0]
+#
+        if hasattr(job.stats_file, 'url'):
+            response = urllib2.urlopen('http://dashboard.cbits.northwestern.edu' + job.stats_file.url)
+            json_obj = json.loads(response.read())
+        
+            if json_obj['model_type'] == 'decision-tree':
+                key = key.replace('FEATURE_VALUE_DT_', '').replace('R1', '')
+                tokens = key.split('_')
+                    
+                matrix = parse_matrix(json_obj['confusion_matrix'])
+                
+                for k,v in matrix['counts'].iteritems():
+                    label = tokens[1] + '_' + k
+                    
+                    if (label in labels) == False:
+                        labels.append(label)
+                
+                matrices[job.app_key] = matrix
+                matrices[job.app_key + ' (Forest)'] = matrix
+
+    categorical.write(0, 0, 'Subject')
+    categorical.write(0, 1, 'Question')
+    categorical.write(0, 2, 'Number of instances')
+    categorical.write(0, 3, 'Number correct')
+    categorical.write(0, 4, 'Number incorrect')
+    categorical.write(0, 5, 'Percent Correct')
+    categorical.write(0, 6, 'Cohen\'s Kappa')
+    categorical.write(0, 7, 'Shannon Entropy')
+    
+    labels.sort()
+    
+    for i in range(len(labels)):
+        label = labels[i]
+        
+        categorical.write(0, 8 + i, label)
+
+    forest = workbook.add_sheet('Forest')
+
+    forest.write(0, 0, 'Subject')
+    forest.write(0, 1, 'Question')
+    forest.write(0, 2, 'Number of instances')
+    forest.write(0, 3, 'Number correct')
+    forest.write(0, 4, 'Number incorrect')
+    forest.write(0, 5, 'Percent Correct')
+    forest.write(0, 6, 'Cohen\'s Kappa')
+    forest.write(0, 7, 'Shannon Entropy')
+    
+    labels.sort()
+    
+    for i in range(len(labels)):
+        label = labels[i]
+        
+        forest.write(0, 8 + i, label)
+
+    continuous = workbook.add_sheet('Continuous')
+
+    continuous.write(0, 0, 'Subject')
+    continuous.write(0, 1, 'Question')
+    continuous.write(0, 2, 'Number of instances')
+    continuous.write(0, 3, 'RMS Error')
+    continuous.write(0, 4, 'Correlation Coef.')
+    continuous.write(0, 5, 'R-Squared')
+    continuous.write(0, 6, 'No. of Sensors')
+    
+    index = 1
+    continuous_index = 1
+    forest_index = 1
+                
+    for key in keys:
+        job = ReportJob.objects.filter(app_key=key).order_by('-job_end')[0]
+
+        if hasattr(job.stats_file, 'url'):
+            response = urllib2.urlopen('http://dashboard.cbits.northwestern.edu' + job.stats_file.url)
+            json_obj = json.loads(response.read())
+        
+            if json_obj['model_type'] == 'decision-tree':
+                summary = json_obj['summary'].strip()
+        
+                lines = []
+        
+                for line in summary.split('\n'):
+                    line = string.replace(line, '  ', '\t')
+            
+                    while string.find(line, '\t\t') != -1:
+                        line = string.replace(line, '\t\t', '\t')
+                
+                    lines.append(line.strip())
+                
+                key = key.replace('FEATURE_VALUE_DT_', '').replace('R1', '')
+                tokens = key.split('_')
+                
+                row_question = tokens[1]
+        
+                categorical.write(index, 0, tokens[0])
+                categorical.write(index, 1, row_question)
+        
+                tokens = lines[0].split('\t')
+                correct = int(tokens[1])
+                percent_correct = float(string.replace(tokens[2], '%', '').strip())
+
+                tokens = lines[1].split('\t')
+                incorrect = int(tokens[1])
+
+                tokens = lines[2].split('\t')
+                kappa = float(tokens[1])
+        
+                categorical.write(index, 2, correct + incorrect)
+                categorical.write(index, 3, correct)
+                categorical.write(index, 4, incorrect)
+                categorical.write(index, 5, percent_correct)
+                categorical.write(index, 6, kappa)
+
+                shannon_labels = []
+
+                for i in range(len(labels)):
+                    label = labels[i]
+                    label_tokens = label.split('_')
+                    
+                    question = label_tokens[0]
+                    answer = label_tokens[1]
+                    
+                    if question.startswith(row_question):
+                        matrix = matrices[job.app_key]               
+                        counts = matrix['counts']
+    
+                        label = labels[i]
+                        
+                        label_tokens = label.split('_')
+                        
+                        try:
+                            count = counts[label_tokens[1]]
+                        except KeyError:
+                            count = 0
+                            
+                        shannon_labels.append(count)
+            
+                        categorical.write(index, 8 + i, count)
+                    else:
+                        categorical.write(index, 8 + i, '')
+
+                categorical.write(index, 7, shannon(shannon_labels))
+        
+                index += 1
+
+            elif json_obj['model_type'] == 'forest':
+                summary = json_obj['summary'].strip()
+        
+                lines = []
+        
+                for line in summary.split('\n'):
+                    line = string.replace(line, '  ', '\t')
+            
+                    while string.find(line, '\t\t') != -1:
+                        line = string.replace(line, '\t\t', '\t')
+                
+                    lines.append(line.strip())
+                
+                key = key.replace('FEATURE_VALUE_DT_', '').replace('R1', '').replace(' (Forest)', '')
+                tokens = key.split('_')
+                
+                row_question = tokens[1]
+        
+                forest.write(forest_index, 0, tokens[0])
+                forest.write(forest_index, 1, row_question)
+        
+                tokens = lines[0].split('\t')
+                correct = int(tokens[1])
+                percent_correct = float(string.replace(tokens[2], '%', '').strip())
+
+                tokens = lines[1].split('\t')
+                incorrect = int(tokens[1])
+
+                tokens = lines[2].split('\t')
+                kappa = float(tokens[1])
+        
+                forest.write(forest_index, 2, correct + incorrect)
+                forest.write(forest_index, 3, correct)
+                forest.write(forest_index, 4, incorrect)
+                forest.write(forest_index, 5, percent_correct)
+                forest.write(forest_index, 6, kappa)
+
+                shannon_labels = []
+
+                for i in range(len(labels)):
+                    label = labels[i]
+                    label_tokens = label.split('_')
+                    
+                    question = label_tokens[0]
+                    answer = label_tokens[1]
+                    
+                    if question.startswith(row_question):
+                        matrix = matrices[job.app_key]               
+                        counts = matrix['counts']
+    
+                        label = labels[i]
+                        
+                        label_tokens = label.split('_')
+                        
+                        try:
+                            count = counts[label_tokens[1]]
+                        except KeyError:
+                            count = 0
+                            
+                        shannon_labels.append(count)
+            
+                        forest.write(forest_index, 8 + i, count)
+                    else:
+                        forest.write(forest_index, 8 + i, '')
+
+                forest.write(forest_index, 7, shannon(shannon_labels))
+        
+                forest_index += 1
+            elif json_obj['model_type'] == 'regression':
+                summary = json_obj['summary'].strip()
+        
+                lines = []
+        
+                for line in summary.split('\n'):
+                    line = string.replace(line, '  ', '\t')
+            
+                    while string.find(line, '\t\t') != -1:
+                        line = string.replace(line, '\t\t', '\t')
+                
+                    lines.append(line.strip())
+                    
+                model = json_obj['model'].strip()
+
+                while string.find(model, '\n\n') != -1:
+                    model = string.replace(model, '\n\n', '\n')
+                
+                model_lines = model.split('\n')    
+
+                key = key.replace('FEATURE_VALUE_DT_', '').replace('R1', '')
+                tokens = key.split('_')
+        
+                continuous.write(continuous_index, 0, tokens[0])
+                continuous.write(continuous_index, 1, tokens[1])
+        
+                tokens = lines[5].split('\t')
+                num_instances = int(tokens[1].strip())
+
+                tokens = lines[2].split('\t')
+                rms_error = float(tokens[1])
+        
+                continuous.write(continuous_index, 2, num_instances)
+                continuous.write(continuous_index, 3, rms_error)
+                continuous.write(continuous_index, 4, json_obj['correlation'])
+                continuous.write(continuous_index, 5, json_obj['correlation'] * json_obj['correlation'])
+                continuous.write(continuous_index, 6, len(model_lines) - 4)
+                continuous_index += 1
+
+    io_str = StringIO.StringIO()
+    workbook.save(io_str)
+
+    response = HttpResponse(io_str.getvalue(), content_type="application/vnd.ms-excel")
+    response['Content-Disposition'] = 'attachment; filename="Mobilyze_' + datetime.date.today().strftime('%Y%m%d') + '.xls"'
+    
+    io_str.close()
+    
+    return response
 
 
+def parse_matrix(matrix_str):
+    lines = matrix_str.strip().split('\n')[3:]
+    
+    matrix_obj = {}
+    
+    counts = {}
+    
+    for line_index in range(len(lines)):
+        line = lines[line_index].strip()
+        
+        while string.find(line, '  ') != -1:
+            line = string.replace(line, '  ', ' ')
+            
+        line_tokens = line.split(' ')
+        
+        label = line_tokens[-1]
+        
+        label_count = 0.0
 
+        for token_index in range(len(lines)):
+            label_count += float(line_tokens[token_index])
+        
+        counts[label] = label_count
+        
+    matrix_obj['counts'] = counts
+    
+    return matrix_obj
 
+        
+def shannon(counts):
+    if len(counts) == 0:
+        return 0
+    
+    n_labels = numpy.sum(counts)
 
+    if n_labels <= 1:
+        return 0
 
+    probs = counts / n_labels
+    n_classes = numpy.count_nonzero(probs)
+
+    if n_classes <= 1:
+        return 0
+
+    ent = 0.0
+
+    for i in probs:
+        if i > 0:
+            ent -= i * math.log(i, n_classes)
+
+    return ent
+    
+    
+# === Confusion Matrix ===
+#  a  b  c  d  e   <-- classified as
+#  0  0  0  0  0 |  a = ?
+#  0 15  0  9  1 |  b = alone
+#  0  0  5  0  0 |  c = strangers
+#  0  9  0  0  3 |  d = acquaintances
+#  0  2  0  4  0 |  e = friends
+# 
+# === Confusion Matrix ===
+#  a  b  c  d  e  f  g  h   <-- classified as
+# 21  1  2  0  0  0  0  2 |  a = personal_space
+#  0  0  0  0  1  0  0  0 |  b = shopping
+#  1  0  2  0  0  0  0  0 |  c = other_persons_space
+#  0  0  0  0  0  0  0  0 |  d = ?
+#  0  1  0  0  0  0  0  0 |  e = transit
+#  0  1  0  0  0  0  0  0 |  f = self_care
+#3  0  1  0  0  0  1  0  0 |  g = dining
+#  3  0  0  0  0  0  0  0 |  h = work_or_school
+#  
+# === Confusion Matrix ===
+#  a  b  c  d  e  f  g   <-- classified as
+# 29  0  0  0  0  2  0 |  a = personal_space
+#  1  0  0  0  0  0  0 |  b = other_persons_space
+#  1  0  0  0  0  0  0 |  c = entertainment
+#  0  0  0  0  0  0  0 |  d = ?
+#  1  0  0  0  0  0  0 |  e = transit
+#  2  0  0  0  0  0  0 |  f = self_care
+#  2  0  0  0  0  0  0 |  g = dining

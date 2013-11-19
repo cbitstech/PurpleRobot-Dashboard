@@ -97,6 +97,26 @@ class Command(BaseCommand):
                     job.parameters = json.dumps(params, indent=2)
                     
                     job.save()
+                    
+                app_key += ' (Forest)'
+
+                reports = ReportJob.objects.filter(app_key=app_key)
+
+                if reports.count() == 0:
+                    count += 1
+                    job = ReportJob(app_key=app_key)
+                    job.name = 'Mobilyze ' + part_id + ': ' + question + ' (Forest)'
+                    
+                    params = {}
+                    params['database'] = hash
+                    params['arff_name'] = question
+                    label = { "undefined": question }
+                    params['label'] = label
+                    params['type'] = 'forest'
+                    
+                    job.parameters = json.dumps(params, indent=2)
+                    
+                    job.save()
 
             for question in MOBILYZE_QUESTIONS:
                 app_key = part_id + '_' + question

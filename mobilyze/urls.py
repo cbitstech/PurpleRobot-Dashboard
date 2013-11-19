@@ -18,5 +18,6 @@ urlpatterns = patterns('',
     url(r'^nom_stats/(?P<user_id>\w+)/(?P<question>.+)', mobilyze_nom_stats, name='mobilyze_nom_stats'),
     url(r'^numeric\.xls', mobilyze_numeric, name='mobilyze_numeric'),
     url(r'^demographic\.xls', mobilyze_demographic, name='mobilyze_demographic'),
+    url(r'^report\.xls', mobilyze_data_report, name='mobilyze_data_report'),
     url(r'^scheme_config', scheme_config, name='scheme_config'),
 )

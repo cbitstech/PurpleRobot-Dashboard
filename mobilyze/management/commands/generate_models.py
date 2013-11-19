@@ -21,10 +21,10 @@ from data_sources.models import DataSource, DataReport
 from participants.models import *
 
 QUESTIONS = [
-#    'FEATURE_VALUE_DT_ConversationTypeR1',
-#    'FEATURE_VALUE_DT_LocationR1',
-#    'FEATURE_VALUE_DT_PeopleInEnvironmentR1',
-#    'FEATURE_VALUE_DT_PeopleNearbyR1',
+    'FEATURE_VALUE_DT_ConversationTypeR1',
+    'FEATURE_VALUE_DT_LocationR1',
+    'FEATURE_VALUE_DT_PeopleInEnvironmentR1',
+    'FEATURE_VALUE_DT_PeopleNearbyR1',
     'FEATURE_VALUE_DT_CalmR1',
     'FEATURE_VALUE_DT_StressR1',
     'FEATURE_VALUE_DT_AnxietyR1',
@@ -67,17 +67,20 @@ class Command(BaseCommand):
         for participant in StudyParticipant.objects.filter(study=mobilyze):
             part_id = participant.participant_id
 
+            print('PART ID: ' + part_id)
+
             m = hashlib.md5()
             m.update(part_id)
             hash = m.hexdigest()
             
             for question in QUESTIONS:
-                print('PART ID: ' + part_id)
                 
-                app_key = part_id + '_' + question
+                app_key = part_id + '_' + question + ' (Forest)'
                 
-                for job in ReportJob.objects.filter(app_key=app_key):
+                for job in ReportJob.objects.filter(app_key=app_key, stats_file='').exclude(result_file=''):
                     url = job.result_file.url 
+                    
+                    print('URL: ' + url)
                     
                     output_file = tempfile.NamedTemporaryFile()
 #                    stderr_file = tempfile.NamedTemporaryFile()
@@ -85,11 +88,13 @@ class Command(BaseCommand):
                     jar_file = '/var/www/django/dashboard/brain/lib/j48.jar'
                     
                     params = json.loads(job.parameters)
-                    print(params.get("type", "unknown"))
+                    job_type = params.get("type", "unknown")
                     
-                    if params.get("type", "nominal") == "numeric":
+                    if job_type == "numeric":
                         jar_file = '/var/www/django/dashboard/brain/lib/regress.jar'
-
+                    elif job_type == "forest":
+                        jar_file = '/var/www/django/dashboard/brain/lib/forest.jar'
+                        
                     command = ['/usr/bin/java', '-jar', jar_file, url, string.lower("undefined_" + question)]
 
                     print(str(command))
