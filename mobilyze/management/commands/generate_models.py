@@ -85,7 +85,7 @@ class Command(BaseCommand):
                     output_file = tempfile.NamedTemporaryFile()
 #                    stderr_file = tempfile.NamedTemporaryFile()
 
-                    jar_file = '/var/www/django/dashboard/brain/lib/j48.jar'
+                    jar_file = '/var/www/django/dashboard/brain/lib/forest.jar'
                     
                     params = json.loads(job.parameters)
                     job_type = params.get("type", "unknown")
